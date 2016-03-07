@@ -47,24 +47,11 @@ Range _rangeFromText(Text text, int startOffset, int endOffset) => new Range()
 bool _rangeContainsPoint(Range range, Point point) =>
     RangeFix.getClientRects(range).any((rect) => rect.containsPoint(point));
 
-// FIXME: A better way to detect this?
-bool _hasCaretPositionFromPoint = (() {
-  try {
-    _jsCaretPositionFromPoint(0, 0);
-    return true;
-  } catch (e) {
-    return false;
-  }
-})();
+@JS('DOMInterop.hasCaretPositionFromPoint')
+external bool _hasCaretPositionFromPoint();
 
-bool _hasCaretRangeFromPoint = (() {
-  try {
-    document.caretRangeFromPoint(0, 0);
-    return true;
-  } catch (e) {
-    return false;
-  }
-})();
+@JS('DOMInterop.hasCaretRangeFromPoint')
+external bool _hasCaretRangeFromPoint();
 
 Point<int> _floorPoint(Point<num> point) =>
     new Point<int>(point.x.floor(), point.y.floor());
@@ -76,9 +63,9 @@ CaretPosition caretPositionFromPoint(Point<num> numPoint) {
   Point<int> point = _floorPoint(numPoint);
 
   // FIXME: Add support for IE
-  if (_hasCaretPositionFromPoint) {
+  if (_hasCaretPositionFromPoint()) {
     return new CaretPosition._(_jsCaretPositionFromPoint(point.x, point.y));
-  } else if (_hasCaretRangeFromPoint) {
+  } else if (_hasCaretRangeFromPoint()) {
     // FIXME: Add a workaround for the bug.
     // https://code.google.com/p/chromium/issues/detail?id=400835
     final range = document.caretRangeFromPoint(point.x, point.y);
@@ -110,4 +97,3 @@ CaretPosition caretPositionFromPoint(Point<num> numPoint) {
     return null;
   }
 }
-
