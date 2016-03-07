@@ -2,23 +2,9 @@ library dom_interop;
 
 import 'dart:html';
 
-import 'package:js/js.dart';
 import 'package:range_fix/range_fix.dart';
 
-@JS('document.caretPositionFromPoint')
-external JSCaretPosition _jsCaretPositionFromPoint(int x, int y);
-
-/// Represents the caret position, an indicator for the text insertion point.
-/// You can get a [JSCaretPosition] using the [caretPositionFromPoint] function.
-///
-/// FIXME: It should be private, but making this private causes an
-/// internal error in Dartium. Leave it as public until the Dartium bug is
-/// fixed.
-@JS('CaretPosition')
-class JSCaretPosition {
-  external Node get offsetNode;
-  external int get offset;
-}
+import 'dom_interop_js.dart';
 
 class CaretPosition {
   Node offsetNode;
@@ -47,12 +33,6 @@ Range _rangeFromText(Text text, int startOffset, int endOffset) => new Range()
 bool _rangeContainsPoint(Range range, Point point) =>
     RangeFix.getClientRects(range).any((rect) => rect.containsPoint(point));
 
-@JS('DOMInterop.hasCaretPositionFromPoint')
-external bool _hasCaretPositionFromPoint();
-
-@JS('DOMInterop.hasCaretRangeFromPoint')
-external bool _hasCaretRangeFromPoint();
-
 Point<int> _floorPoint(Point<num> point) =>
     new Point<int>(point.x.floor(), point.y.floor());
 
@@ -63,9 +43,9 @@ CaretPosition caretPositionFromPoint(Point<num> numPoint) {
   Point<int> point = _floorPoint(numPoint);
 
   // FIXME: Add support for IE
-  if (_hasCaretPositionFromPoint()) {
-    return new CaretPosition._(_jsCaretPositionFromPoint(point.x, point.y));
-  } else if (_hasCaretRangeFromPoint()) {
+  if (hasCaretPositionFromPoint()) {
+    return new CaretPosition._(jsCaretPositionFromPoint(point.x, point.y));
+  } else if (hasCaretRangeFromPoint()) {
     // FIXME: Add a workaround for the bug.
     // https://code.google.com/p/chromium/issues/detail?id=400835
     final range = document.caretRangeFromPoint(point.x, point.y);
