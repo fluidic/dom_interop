@@ -1,3 +1,4 @@
+@JS()
 library dom_interop.js;
 
 import 'dart:html';
